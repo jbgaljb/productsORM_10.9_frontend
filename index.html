@@ -85,8 +85,94 @@
         </div>
     </div>
 
+    <!-- Add Product Button -->
+    <div class="text-center my-4">
+        <button class="btn" style="background-color: #90ee90" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            Add Product
+        </button>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <form id="addProductForm">
+                <div class="mb-3">
+                <label for="addName" class="form-label">Product Name</label>
+                <input type="text" class="form-control" id="addName" placeholder="Enter product name" required>
+                </div>
+                <div class="mb-3">
+                <label for="addPrice" class="form-label">Product Price</label>
+                <input type="number" class="form-control" id="addPrice" placeholder="Enter product price" required>
+                </div>
+                <div class="mb-3">
+                <label for="addDescription" class="form-label">Product Description</label>
+                <input type="text" class="form-control" id="addDescription" placeholder="Enter product description" required>
+                </div>
+                <div class="mb-3">
+                <label for="addCategory" class="form-label">Category</label>
+                <select class="form-control" id="addCategory" required>
+                    <option value="">Select Category</option>
+                    <option value="meat">Meat</option>
+                    <option value="dairy">Dairy</option>
+                    <option value="fruits">Fruits</option>
+                </select>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="addProductBtn">Add Product</button>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="updateModalLabel">Update Product</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <form id="updateForm">
+                <div class="mb-3">
+                <label for="updateName" class="form-label">Product Name</label>
+                <input type="text" class="form-control" id="updateName" placeholder="">
+                </div>
+                <div class="mb-3">
+                <label for="updateDescription" class="form-label">Product Description</label>
+                <input type="text" class="form-control" id="updateDescription" placeholder="">
+                </div>
+                <div class="mb-3">
+                <label for="updatePrice" class="form-label">Product Price</label>
+                <input type="number" class="form-control" id="updatePrice" placeholder="">
+                </div>
+                <input type="hidden" id="updateProductId">
+            </form>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="saveChangesBtn">Save changes</button>
+            </div>
+        </div>
+        </div>
+    </div>
+  
+    
+
+
     <script>
-        const SERVER = "http://127.0.0.1:5000"
+        const SERVER = "https://productsorm-10-9.onrender.com"
         
         // Async function to fetch products using Axios
         async function fetchProducts() {
@@ -105,25 +191,28 @@
             document.getElementById('allCategoriesContainer').innerHTML = '';
             document.getElementById('meatContainer').innerHTML = '';
             document.getElementById('dairyContainer').innerHTML = '';
-            document.getElementById('fruitsContainer').innerHTML = '';
-
-            console.log(products)
-            
+            document.getElementById('fruitsContainer').innerHTML = '';            
 
             // Loop through the products and create cards
             products.forEach(product => {
                 const cardHTML = `
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">${product.name}</h5>
-                                <p class="card-text">${product.description}</p>
-                                <button class="btn delete-btn" style="background-color: #f28b82" data-id="${product.id}">Delete</button>
-                                <button class="btn update-btn" style="background-color: #ffeb3b" data-id="${product.id}" data-name="${product.name}" data-description="${product.description}">Update</button>
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title">${product.name}</h5>
+                                    <p class="card-text">${product.description}</p>
+                                    <button class="btn delete-btn" style="background-color: #f28b82" data-id="${product.id}">Delete</button>
+                                    <button class="btn update-btn" style="background-color: #ffeb3b" data-id="${product.id}" data-name="${product.name}" data-description="${product.description}" data-price="${product.price}">Update</button>
+                                </div>
+                                <div>
+                                    <span class="text-end" style="font-size: 1rem; font-weight: bold;">$${product.price}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
+
 
                 // Add product card to the appropriate category
                 document.getElementById('allCategoriesContainer').insertAdjacentHTML('beforeend', cardHTML);
@@ -153,15 +242,101 @@
                     }
                 });
             });
+
+            // Attach event listeners to update buttons
+            document.querySelectorAll('.update-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const productId = event.target.getAttribute('data-id');
+                    const productName = event.target.getAttribute('data-name');
+                    const productDescription = event.target.getAttribute('data-description');
+                    const productPrice = event.target.getAttribute('data-price');
+
+                    // Populate the modal with current data
+                    document.getElementById('updateProductId').value = productId;
+                    document.getElementById('updateName').placeholder = productName;
+                    document.getElementById('updateDescription').placeholder = productDescription;
+                    document.getElementById('updatePrice').placeholder = productPrice;
+
+                    // Show the modal
+                    const updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+                    updateModal.show();
+                });
+            });
+
+
+
         }
 
         // Call the async function to fetch and render products when the page loads
         document.addEventListener('DOMContentLoaded', fetchProducts);
+
+        // Handle the update form submission
+        document.getElementById('saveChangesBtn').addEventListener('click', async () => {
+            const productId = document.getElementById('updateProductId').value;
+            const updatedName = document.getElementById('updateName').value || document.getElementById('updateName').placeholder;
+            const updatedDescription = document.getElementById('updateDescription').value || document.getElementById('updateDescription').placeholder;
+            const updatedPrice = document.getElementById('updatePrice').value || document.getElementById('updatePrice').placeholder;
+
+            try {
+                // Send a POST request to update the product
+                await axios.post(SERVER + `/update_product/${productId}`, {
+                    name: updatedName,
+                    description: updatedDescription,
+                    price: updatedPrice
+                });
+
+                // Reload products after the update
+                fetchProducts();
+
+                // Hide the modal
+                const updateModal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+                updateModal.hide();
+            } catch (error) {
+                console.error('Error updating product:', error);
+            }
+        });
+
+
+        // Handle the "Add Product" form submission
+        document.getElementById('addProductBtn').addEventListener('click', async () => {
+            const name = document.getElementById('addName').value;
+            const price = document.getElementById('addPrice').value;
+            const description = document.getElementById('addDescription').value;
+            const category = document.getElementById('addCategory').value;
+
+            // Check if all fields are filled
+            if (!name || !price || !description || !category) {
+                alert('Please fill out all fields.');
+                return;
+            }
+
+            try {
+                // Send a POST request to add the product
+                await axios.post(SERVER + '/add_product', {
+                    name: name,
+                    price: price,
+                    description: description,
+                    category: category
+                });
+
+                // Reload products after successful addition
+                fetchProducts();
+
+                // Hide the modal
+                const addProductModal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+                addProductModal.hide();
+            } catch (error) {
+                console.error('Error adding product:', error);
+                alert('There was an error adding the product.');
+            }
+        });
+
 
 
 
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
